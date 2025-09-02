@@ -22,12 +22,11 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import traceback
 
 # === Imported tab builders (auto-generated) ===
-from .tabs.lookup_tab import create_lookup_tab
+from .tabs.lookup_tab import LookupTab
 from .tabs.looking_glass_tab import create_looking_glass_tab
 from .tabs.prefix_availability_tab import create_prefix_availability_tab
 from .tabs.bgprpki_auditor_tab import create_bgprpki_auditor_tab
-from .tabs.settings_tab import create_settings_tab
-
+from .tabs.settings_tab import SettingsTab
 
 class AdvancedRIPEIPLookup:
     """
@@ -57,11 +56,13 @@ class AdvancedRIPEIPLookup:
         self.settings = self.load_settings()
         self.bgprpki_worker = None
         self.bgprpki_total_expected = 0
-        self.create_lookup_tab()
+        self.lookup_tab = LookupTab(self.notebook)
+        self.notebook.add(self.lookup_tab, text="RIPE Lookup")
+        self.settings_tab = SettingsTab(self.notebook)
+        self.notebook.add(self.settings_tab, text="Settings")
         self.create_looking_glass_tab()
         self.create_prefix_availability_tab()
         self.create_bgprpki_auditor_tab()
-        self.create_settings_tab()
 
         # Frame for bottom labels
         bottom_frame = tk.Frame(self.root)
@@ -110,8 +111,6 @@ class AdvancedRIPEIPLookup:
             self.network_status_label.config(text="Network Status: Down", fg="red")
         self.root.after(10000, self.check_network_status)
 
-    def create_lookup_tab(self):
-        return create_lookup_tab(self)
 
     def browse_input_file(self):
         filetypes = (("Excel files", "*.xlsx;*.xls"), ("Text files", "*.txt;*.csv"), ("All files", "*.*"))
@@ -714,9 +713,6 @@ class AdvancedRIPEIPLookup:
             values = self.bgprpki_tree.item(item)["values"]
             if values[3] == "pending":  # Check if RPKI status is pending
                 self.bgprpki_tree.item(item, values=[values[0], values[1], values[2], "error", "Operation stopped", values[5], values[6]], tags=("error",))
-
-    def create_settings_tab(self):
-        return create_settings_tab(self)
 
     def save_prefixes(self):
         try:
